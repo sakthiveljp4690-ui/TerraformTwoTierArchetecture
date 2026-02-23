@@ -46,6 +46,13 @@ resource "aws_security_group" "public_security_groups" {
     vpc_id = aws_vpc.free_tier_vpc.id
 
     ingress {
+        from_port = 80
+        to_port = 80
+        protocol = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    ingress {
         from_port = 0
         to_port = 0
         protocol = "-1"
@@ -129,20 +136,30 @@ resource "aws_vpc" "free_tier_vpc" {
     }
 }
 
-resource "aws_route_table" "free_tier_routetable" {
+resource "aws_route_table" "free_tier_public_routetable" {
   vpc_id = aws_vpc.free_tier_vpc.id
+  tags = {
+    Name = "public_route_table"
+  }
+}
+
+resource "aws_route_table" "free_tier_private_routetable" {
+  vpc_id = aws_vpc.free_tier_vpc.id
+  tags = {
+    Name = "private_route_table"
+  }
 }
 
 resource "aws_route" "public_route" {
-    route_table_id = aws_route_table.free_tier_routetable.id
+    route_table_id = aws_route_table.free_tier_public_routetable.id
     gateway_id = aws_internet_gateway.free_tier_igw.id
     destination_cidr_block = "0.0.0.0/0"
 }
 
 resource "aws_route" "private_route" {
-    route_table_id = aws_route_table.free_tier_routetable.id
+    route_table_id = aws_route_table.free_tier_private_routetable.id
     network_interface_id = aws_instance.free_tier_nat_instance.primary_network_interface_id
-    destination_cidr_block = aws_subnet.private_subnet.cidr_block
+    destination_cidr_block = "0.0.0.0/0"
 }
 
 resource "aws_subnet" "public_subnet" {
@@ -157,12 +174,12 @@ resource "aws_subnet" "private_subnet" {
 
 resource "aws_route_table_association" "public_association" {
     subnet_id = aws_subnet.public_subnet.id
-    route_table_id = aws_route_table.free_tier_routetable.id
+    route_table_id = aws_route_table.free_tier_public_routetable.id
 }
 
 resource "aws_route_table_association" "private_association" {
     subnet_id = aws_subnet.private_subnet.id
-    route_table_id = aws_route_table.free_tier_routetable.id
+    route_table_id = aws_route_table.free_tier_private_routetable.id
 }
 
 resource "aws_internet_gateway" "free_tier_igw" {
