@@ -79,9 +79,9 @@ resource "aws_security_group" "private_security_groups" {
     vpc_id = aws_vpc.free_tier_vpc.id
     
     ingress {
-        from_port = 0
-        to_port = 0
-        protocol = "-1"
+        from_port = 80
+        to_port = 80
+        protocol = "tcp"
         security_groups = [data.aws_security_group.bation_sg.id]
     }
 
@@ -105,13 +105,6 @@ resource "aws_security_group" "private_security_groups" {
 
 resource "aws_security_group" "bation_security_groups" {
     vpc_id = aws_vpc.free_tier_vpc.id
-    
-    ingress {
-        from_port = 80
-        to_port = 80
-        protocol = "tcp"
-        security_groups = [data.aws_security_group.private_sg.id]
-    }
 
     egress {
         from_port = 0
