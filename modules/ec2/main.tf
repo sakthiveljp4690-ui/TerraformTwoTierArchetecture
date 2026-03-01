@@ -8,14 +8,32 @@ data "aws_ami" "amazon_linux" {
     }
 }
 
-resource "aws_instance" "free_tier_application_instance" {
+resource "aws_instance" "private_instance" {
     ami = data.aws_ami.amazon_linux.id
     instance_type = var.instance_type
     iam_instance_profile = var.ec2_instance_profile
-    vpc_security_group_ids = [var.public_security_groups]
-    subnet_id = var.public_subnet
-    associate_public_ip_address = true
+    vpc_security_group_ids = [var.private_ec2_sg]
+    subnet_id = var.private_subnet_az1
+    associate_public_ip_address = false
+    user_data = <<-EOF
+              #!/bin/bash
+              sudo yum update -y
+              sudo amazon-linux-extras install nginx1
+              sudo systemctl start nginx
+              sudo systemctl enable nginx
+              sudo yum install mysql -y
+              sudo curl -O https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem
+              EOF
     tags = {
-        Name = "terraform-application-public"
+        Name = "terraform-application-private"
     }
 }
+
+resource "aws_eip" "eip" {
+    domain = "vpc"
+    tags = {
+      name = "terraform_eip"
+    }
+}
+
+

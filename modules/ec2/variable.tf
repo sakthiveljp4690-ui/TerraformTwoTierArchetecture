@@ -1,4 +1,5 @@
 variable "instance_type" {}
-variable "public_subnet" {}
+variable "private_subnet_az1" {}
 variable "ec2_instance_profile" {}
-variable "public_security_groups" {}
+variable "private_ec2_sg" {}
+variable "rds_db_endpoint" {}

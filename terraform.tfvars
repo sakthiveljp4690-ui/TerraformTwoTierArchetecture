@@ -3,7 +3,10 @@ ami_filter = "amzn2-ami-hvm-*-x86_64-gp2"
 internet_cidr = "0.0.0.0/0"
 vpc_range = "10.1.0.0/16"
 private_network_range = "10.1.2.0/24"
+private_network_range_2 = "10.1.3.0/24"
 public_network_range = "10.1.1.0/24"
+public_network_range_2 = "10.1.4.0/24"
 instance_type = "t3.micro"
-
+db_username = "master_db_user"
+db_password = "123456789"
 
