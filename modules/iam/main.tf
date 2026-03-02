@@ -23,7 +23,7 @@ resource "aws_iam_policy" "rds_policy" {
         Statement = [{
             Action = "rds-db:connect"
             Effect = "Allow"
-            Resource = "arn:aws:rds-db:ap-northeast-1:${data.aws_caller_identity.current.account_id}:dbuser:${var.rds_db_resource_id}/iam_db_user"
+            Resource = "arn:aws:rds-db:ap-northeast-1:${data.aws_caller_identity.current.account_id}:dbuser:${var.rds_db_resource_id}/master_db_user"
         }]
     })    
 }

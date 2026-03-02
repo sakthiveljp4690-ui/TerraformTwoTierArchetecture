@@ -18,6 +18,8 @@ module "ec2" {
     instance_type = var.instance_type
     ec2_instance_profile = module.iam.ec2_instance_profile
     rds_db_endpoint = module.rds.rds_db_endpoint
+    private_subnet_az2 = module.vpc.private_subnet_az2
+    alb_tgs = module.alb.alb_tgs
 }
 
 module "vpc" {

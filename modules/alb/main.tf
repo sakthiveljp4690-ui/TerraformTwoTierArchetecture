@@ -10,11 +10,11 @@ resource "aws_lb_target_group" "alb_tg" {
     }
 }
 
-resource "aws_lb_target_group_attachment" "tg_ec2_attachment" {
-    target_group_arn = aws_lb_target_group.alb_tg.id
-    target_id = var.instance_id
-    port = 80
-}
+# resource "aws_lb_target_group_attachment" "tg_ec2_attachment" {
+#     target_group_arn = aws_lb_target_group.alb_tg.id
+#     target_id = var.instance_id
+#     port = 80
+# }
 
 resource "aws_alb" "alb" {
     name = "nginx-hosted-alb"

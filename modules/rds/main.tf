@@ -12,7 +12,7 @@ resource "aws_db_instance" "rds_db" {
     engine_version = "8.0"
     db_name = "no_cost_db"
     allocated_storage = 10
-    multi_az = false
+    multi_az = true
     publicly_accessible = false
     vpc_security_group_ids = [var.rds_sg_id]
     db_subnet_group_name = aws_db_subnet_group.private_db_subnet.name
