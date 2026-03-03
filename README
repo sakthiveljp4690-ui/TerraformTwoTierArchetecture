@@ -1,0 +1,115 @@
+# AWS secure HA Two-Tier Architecture (Terraform)
+
+Architecture includes:
+- VPC with public and private subnets
+- Application Load Balancer
+- Auto Scaling Group (EC2 web/app servers)
+- Multi-AZ RDS (MySQL) database
+- Secure access via Systems Manager (SSM)
+- Secure access via IAM AUTH for DB
+- NAT Gateway for outbound internet
+- VPC Interface Endpoints for SSM components
+- IAM roles and security groups
+
+# Architecture Diagram
+
+![Two Tier Architecture](./secure_two-tier_architecture.png)
+
+## 🧠 What This Architecture Does
+
+This deployment provides:
+
+1. Web Tier (Auto Scaling Group)**  
+   - EC2 instances in private subnets  
+   - Placed behind an Application Load Balancer  
+   - Automatically scales based on configured capacity
+
+2. Database Tier (RDS)**  
+   - MySQL instance with Multi-AZ replication
+   - Encrypted storage
+   - Private subnet group, no public access
+   - MySQL DB login via sts token(IAM DB AUTH)
+
+3. Security Best Practices**  
+   - EC2 has no public IPs  
+   - SSM for management (no SSH exposed)
+   - Proper security group scopes between ALB, EC2, and RDS
+
+4. Networking**  
+   - Public subnets host ALB and NAT Gateway  
+   - Private subnets host EC2 and RDS
+   - Public-to-private routing via NAT
+
+# Deployment Steps
+
+1. Configure AWS Credentials
+Set up your AWS credentials locally:
+
+# export AWS_ACCESS_KEY_ID="xxxx"
+# export AWS_SECRET_ACCESS_KEY="xxxx"
+# export AWS_DEFAULT_REGION="ap-northeast-1"
+
+2. Initialize terraform
+# terraform init
+
+3. validate configuration
+# terraform validate 
+
+3. Review Plan
+# terraform plan
+
+3. Apply Planned infra
+# terraform apply
+
+After successful apply:
+Check ALB DNS in the AWS console and open it in browser
+Ensure EC2 instances are running in private subnets
+Confirm ASG has 2+ instances across 2 AZs
+In RDS, verify Multi-AZ is enabled
+EC2 doesn’t have public IP — SSH disabled — use SSM
+
+Connect to Ec2
+login to Ec2 instance from local bash with instance-id
+# aws ssm start-session --target i-xxxxxxxxxxx
+
+Connect to RDS (IAM Auth)
+login to Ec2 instance
+check mysql version as to be 8.0
+# mysql --version
+
+install ssl-ca pem file.
+# sudo curl -O https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem
+
+db_password = "123456789"
+For initial login, use password configured to db_password.
+# Eg;
+mysql -h terraform-2026030213565098330000000c.c122oymqotpa.ap-northeast-1.rds.amazonaws.com \
+-P 3306 \
+-u master_db_user \
+--ssl-mode=VERIFY_CA \
+--ssl-ca=global-bundle.pem \
+-p”123456789” \
+no_cost_db
+
+after successfull initial login, 
+update db_user to use AWSAuthenticationPlugin instead of mysql_native_password.
+# Eg;
+mysql> ALTER USER 'master_db_user'@'%' IDENTIFIED WITH AWSAuthenticationPlugin AS 'RDS';
+mysql> GRANT ALL PRIVILEGES ON no_cost_db.* TO 'master_db_user'@'%';
+mysql> FLUSH PRIVILEGES;
+
+Logout mysql, reconnect DB using IAM token.
+# Eg;
+mysql -h terraform-2026030213565098330000000c.c122oymqotpa.ap-northeast-1.rds.amazonaws.com \
+-P 3306 \
+-u master_db_user \
+--ssl-mode=VERIFY_CA \
+--ssl-ca=global-bundle.pem \
+-p"$(aws rds generate-db-auth-token \
+--hostname terraform-2026030213565098330000000c.c122oymqotpa.ap-northeast-1.rds.amazonaws.com \
+--port 3306 \
+--username master_db_user \
+--region ap-northeast-1)" \
+no_cost_db
+
+
